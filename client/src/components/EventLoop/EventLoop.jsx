@@ -1,47 +1,49 @@
 import { useMemo, useState } from 'react';
-import { Repeat, Zap, Timer, Hourglass, Settings2, ArrowRightLeft, CheckCircle2, Lock } from 'lucide-react';
+import { Repeat, Zap, Timer, ArrowRightLeft, CheckCircle2, Lock } from 'lucide-react';
 
 const PHASES = [
-  { name: 'Timers', color: '#ff6b35', icon: <Timer size={18} />, desc: 'Executes callbacks from setTimeout() and setInterval()', shortDesc: 'setTimeout, setInterval' },
-  { name: 'Pending', color: '#fbbf24', icon: <Hourglass size={18} />, desc: 'Handles deferred I/O callbacks from the previous cycle', shortDesc: 'I/O callbacks' },
-  { name: 'Idle/Prepare', color: '#a855f7', icon: <Settings2 size={18} />, desc: 'Internal phase used by Node.js for housekeeping', shortDesc: 'Internal use' },
-  { name: 'Poll', color: '#00d4ff', icon: <ArrowRightLeft size={18} />, desc: 'Retrieves new I/O events and executes their callbacks', shortDesc: 'New I/O events' },
-  { name: 'Check', color: '#00ff88', icon: <CheckCircle2 size={18} />, desc: 'Executes setImmediate() callbacks after Poll phase', shortDesc: 'setImmediate' },
-  { name: 'Close', color: '#f472b6', icon: <Lock size={18} />, desc: 'Handles close event callbacks like socket.on("close")', shortDesc: 'Close callbacks' },
+  { name: 'Microtasks', color: '#a855f7', icon: <Zap size={18} />, desc: 'Promise.then(), process.nextTick() — runs between every phase', shortDesc: 'Promise.then, nextTick' },
+  { name: 'Timers', color: '#ff6b35', icon: <Timer size={18} />, desc: 'Executes expired setTimeout() and setInterval() callbacks', shortDesc: 'setTimeout, setInterval' },
+  { name: 'I/O Poll', color: '#00d4ff', icon: <ArrowRightLeft size={18} />, desc: 'Checks completed I/O: file reads, network, database queries', shortDesc: 'fs, http, database' },
+  { name: 'Check', color: '#00ff88', icon: <CheckCircle2 size={18} />, desc: 'Executes setImmediate() callbacks after I/O polling', shortDesc: 'setImmediate' },
+  { name: 'Close', color: '#f472b6', icon: <Lock size={18} />, desc: 'Handles close callbacks: socket.destroy(), server.close()', shortDesc: 'Close events' },
 ];
 
 export default function EventLoop({ highlighted, currentAction, isPlaying }) {
   const [hoveredPhase, setHoveredPhase] = useState(-1);
 
+  // Detect which of the 5 phases is currently active from the simulator step
   const activePhase = useMemo(() => {
     if (!currentAction) return -1;
     const d = (currentAction.detail || '').toLowerCase();
     const a = (currentAction.action || '').toLowerCase();
-    if (a.includes('timer') || d.includes('settimeout') || d.includes('setinterval')) return 0;
-    if (a.includes('pending')) return 1;
-    if (a.includes('idle')) return 2;
-    if (a.includes('poll') || a.includes('libuv') || d.includes('i/o')) return 3;
-    if (a.includes('check') || d.includes('setimmediate')) return 4;
-    if (a.includes('close')) return 5;
-    if (a.includes('microtask') || d.includes('promise') || d.includes('nexttick')) return -2;
+    
+    // ① Microtasks
+    if (d.includes('① microtask') || d.includes('microtask') || a.includes('microtask') || d.includes('draining') || d.includes('promise') || d.includes('nexttick')) return 0;
+    // ② Timers
+    if (d.includes('② timer') || a.includes('timer') || d.includes('settimeout') || d.includes('setinterval') || d.includes('timer callback')) return 1;
+    // ③ I/O Poll
+    if (d.includes('③ i/o') || d.includes('poll') || a.includes('libuv') || d.includes('i/o')) return 2;
+    // ④ Check
+    if (d.includes('④ check') || d.includes('check phase') || d.includes('setimmediate')) return 3;
+    // ⑤ Close
+    if (d.includes('⑤ close') || d.includes('close phase') || d.includes('close callback')) return 4;
     return -1;
   }, [currentAction]);
 
   const isComplete = currentAction && currentAction.action === 'EXECUTION_COMPLETE';
   const isActive = !isComplete && (highlighted === 'eventLoop' || isPlaying);
-
-  // Determine what to show in the info panel
   const displayPhase = hoveredPhase >= 0 ? hoveredPhase : activePhase >= 0 ? activePhase : -1;
-  const isMicrotaskPhase = activePhase === -2;
 
-  // Current status text
   const statusText = useMemo(() => {
     if (isComplete) return 'Execution complete';
     if (!currentAction) return 'Waiting for code to run...';
-    if (isMicrotaskPhase) return 'Processing microtask queue...';
-    if (activePhase >= 0) return `In ${PHASES[activePhase].name} phase`;
+    if (activePhase >= 0) return `Checking ${PHASES[activePhase].name}`;
     return 'Event loop is running...';
-  }, [isComplete, currentAction, isMicrotaskPhase, activePhase]);
+  }, [isComplete, currentAction, activePhase]);
+
+  // 5 phases arranged in a circle (72° apart)
+  const phaseAngleStep = 360 / 5;
 
   return (
     <div className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md overflow-hidden transition-all duration-300 h-full ${(!isComplete && highlighted === 'eventLoop') ? 'border-neon-cyan/30 shadow-[0_0_20px_rgba(0,212,255,0.15)]' : 'border-border-subtle'}`}>
@@ -61,40 +63,36 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
       </div>
 
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Ring visualization */}
+        {/* Ring visualization — 5 phases */}
         <div className="flex-1 flex items-center justify-center relative overflow-hidden p-2">
           <div className="relative" style={{ width: 200, height: 200 }}>
             
             {/* SVG ring + arrows */}
             <svg width="200" height="200" className="absolute inset-0 pointer-events-none z-0">
-              {/* Circular track */}
               <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1.5" />
               
-              {/* Directional arc arrows between phases */}
               {PHASES.map((phase, i) => {
-                const a1 = (i * 60 - 90) * Math.PI / 180;
-                const a2 = ((i + 1) % 6 * 60 - 90) * Math.PI / 180;
+                const a1 = (i * phaseAngleStep - 90) * Math.PI / 180;
+                const a2 = ((i + 1) % 5 * phaseAngleStep - 90) * Math.PI / 180;
                 const radius = 78;
                 const x1 = 100 + radius * Math.cos(a1);
                 const y1 = 100 + radius * Math.sin(a1);
                 const x2 = 100 + radius * Math.cos(a2);
                 const y2 = 100 + radius * Math.sin(a2);
                 const active = activePhase === i;
-                const midAngle = ((i * 60 + 30) - 90) * Math.PI / 180;
+                const midAngle = ((i * phaseAngleStep + phaseAngleStep / 2) - 90) * Math.PI / 180;
                 const arrowX = 100 + (radius + 1) * Math.cos(midAngle);
                 const arrowY = 100 + (radius + 1) * Math.sin(midAngle);
-                const arrowAngle = (i * 60 + 30);
+                const arrowAngle = (i * phaseAngleStep + phaseAngleStep / 2);
                 
                 return (
                   <g key={i}>
-                    {/* Connection line */}
                     <line
                       x1={x1} y1={y1} x2={x2} y2={y2}
                       stroke={active ? phase.color : 'rgba(255,255,255,0.08)'}
                       strokeWidth={active ? 2 : 1}
                       className="transition-all duration-300"
                     />
-                    {/* Directional arrow */}
                     <g transform={`translate(${arrowX}, ${arrowY}) rotate(${arrowAngle})`}>
                       <polygon
                         points="-3,-2 3,0 -3,2"
@@ -112,21 +110,14 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
               <div className={`text-[9px] font-bold transition-colors duration-300 ${isActive ? 'text-neon-cyan' : 'text-text-muted'}`}>
                 Event Loop
               </div>
-              {isMicrotaskPhase && (
-                <div className="flex items-center justify-center gap-1 text-[7px] text-neon-purple font-semibold mt-0.5 animate-pulse">
-                  <Zap size={8} /> <span>Microtasks</span>
-                </div>
-              )}
               {isComplete && (
-                <div className="text-[7px] text-text-muted font-semibold mt-0.5">
-                  ● Stopped
-                </div>
+                <div className="text-[7px] text-text-muted font-semibold mt-0.5">● Stopped</div>
               )}
             </div>
 
-            {/* Phase nodes */}
+            {/* Phase nodes — 5 nodes around the ring */}
             {PHASES.map((phase, i) => {
-              const angle = (i * 60 - 90) * Math.PI / 180;
+              const angle = (i * phaseAngleStep - 90) * Math.PI / 180;
               const radius = 78;
               const x = 100 + radius * Math.cos(angle);
               const y = 100 + radius * Math.sin(angle);
@@ -158,17 +149,35 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
               );
             })}
 
-            {/* Orbiting dot */}
-            {isActive && (
-              <div
-                className="absolute w-2.5 h-2.5 rounded-full bg-neon-cyan animate-orbit z-20"
-                style={{
-                  top: '50%', left: '50%',
-                  marginLeft: -5, marginTop: -5,
-                  boxShadow: '0 0 12px var(--color-neon-cyan), 0 0 24px rgba(0,212,255,0.4)',
-                }}
-              />
-            )}
+            {/* Phase indicator dot — sits AT the active phase */}
+            {isActive && (() => {
+              let dotX = 100;
+              let dotY = 100;
+              let dotColor = 'var(--color-neon-cyan)';
+              let dotShadow = '0 0 12px var(--color-neon-cyan), 0 0 24px rgba(0,212,255,0.4)';
+              
+              if (activePhase >= 0) {
+                const angle = (activePhase * phaseAngleStep - 90) * Math.PI / 180;
+                dotX = 100 + 78 * Math.cos(angle);
+                dotY = 100 + 78 * Math.sin(angle);
+                dotColor = PHASES[activePhase].color;
+                dotShadow = `0 0 16px ${PHASES[activePhase].color}, 0 0 32px ${PHASES[activePhase].color}88`;
+              }
+              
+              return (
+                <div
+                  className="absolute w-3 h-3 rounded-full z-20"
+                  style={{
+                    left: dotX,
+                    top: dotY,
+                    transform: 'translate(-50%, -50%)',
+                    background: dotColor,
+                    boxShadow: dotShadow,
+                    transition: 'left 0.5s ease-in-out, top 0.5s ease-in-out, background 0.3s ease',
+                  }}
+                />
+              );
+            })()}
           </div>
         </div>
 
@@ -187,18 +196,6 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
                 <p className="text-[9px] text-text-sub leading-relaxed mt-0.5">{PHASES[displayPhase].desc}</p>
               </div>
             </div>
-          ) : isMicrotaskPhase ? (
-            <div className="flex items-start gap-2">
-              <Zap size={18} className="shrink-0 text-neon-purple mt-1" />
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-neon-purple">Microtask Checkpoint</span>
-                </div>
-                <p className="text-[9px] text-text-sub leading-relaxed mt-0.5">
-                  Between each phase, Node.js drains the microtask queue (Promise.then, process.nextTick) before proceeding.
-                </p>
-              </div>
-            </div>
           ) : (
             <div className="flex items-center gap-2">
               <span className="text-[9px] text-text-muted">
@@ -206,6 +203,35 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
               </span>
             </div>
           )}
+        </div>
+
+        {/* Execution Order — always visible */}
+        <div className="shrink-0 border-t border-border-subtle/50 bg-bg-secondary/30 px-3 py-1.5">
+          <div className="text-[7px] font-bold uppercase tracking-widest text-text-muted mb-1">Execution Order</div>
+          <div className="flex items-center gap-1 text-[8px] flex-wrap">
+            {PHASES.map((phase, i) => (
+              <span key={phase.name} className="contents">
+                <span className={`px-1.5 py-0.5 rounded font-semibold transition-all duration-300 ${
+                  activePhase === i 
+                    ? 'border shadow-lg' 
+                    : `opacity-40`
+                }`}
+                  style={activePhase === i ? {
+                    background: `${phase.color}20`,
+                    color: phase.color,
+                    borderColor: `${phase.color}60`,
+                    boxShadow: `0 0 8px ${phase.color}30`,
+                  } : {
+                    color: phase.color,
+                  }}
+                >
+                  {['①','②','③','④','⑤'][i]} {phase.name}
+                </span>
+                {i < PHASES.length - 1 && <span className="text-text-muted/30">→</span>}
+              </span>
+            ))}
+            <span className="text-text-muted/30">→ ↩</span>
+          </div>
         </div>
       </div>
     </div>

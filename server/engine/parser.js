@@ -70,7 +70,7 @@ function parseCode(code) {
 function isInsideAsyncCallback(node, ancestors, code) {
   // Known async parent callee names/patterns
   const asyncCallees = [
-    'setTimeout', 'setInterval', 'setImmediate', 'queueMicrotask',
+    'setTimeout', 'setInterval', 'setImmediate', 'queueMicrotask', 'fetch',
   ];
 
   // Walk ancestors from innermost to outermost
@@ -142,6 +142,7 @@ function identifyCallExpression(node, ancestors, code, id) {
       delay: parseInt(delay) || 0,
       callback: callbackName,
       callbackBody: node.arguments[0] ? code.slice(node.arguments[0].start, node.arguments[0].end) : '',
+      callbackStartLine: node.arguments[0] && node.arguments[0].loc ? node.arguments[0].loc.start.line : line,
     };
   }
 
@@ -154,6 +155,8 @@ function identifyCallExpression(node, ancestors, code, id) {
       code: codeSnippet, line, category: 'timer',
       delay: parseInt(delay) || 0,
       callback: callbackName,
+      callbackBody: node.arguments[0] ? code.slice(node.arguments[0].start, node.arguments[0].end) : '',
+      callbackStartLine: node.arguments[0] && node.arguments[0].loc ? node.arguments[0].loc.start.line : line,
     };
   }
 
@@ -164,6 +167,8 @@ function identifyCallExpression(node, ancestors, code, id) {
       id, type: 'SET_IMMEDIATE', name: `setImmediate(${callbackName})`,
       code: codeSnippet, line, category: 'check',
       callback: callbackName,
+      callbackBody: node.arguments[0] ? code.slice(node.arguments[0].start, node.arguments[0].end) : '',
+      callbackStartLine: node.arguments[0] && node.arguments[0].loc ? node.arguments[0].loc.start.line : line,
     };
   }
 
@@ -177,6 +182,7 @@ function identifyCallExpression(node, ancestors, code, id) {
       handler: callee.property.name,
       callback: callbackName,
       callbackBody: node.arguments[0] ? code.slice(node.arguments[0].start, node.arguments[0].end) : '',
+      callbackStartLine: node.arguments[0] && node.arguments[0].loc ? node.arguments[0].loc.start.line : line,
     };
   }
 
@@ -204,6 +210,7 @@ function identifyCallExpression(node, ancestors, code, id) {
       code: codeSnippet, line, category: 'microtask',
       callback: callbackName,
       callbackBody: node.arguments[0] ? code.slice(node.arguments[0].start, node.arguments[0].end) : '',
+      callbackStartLine: node.arguments[0] && node.arguments[0].loc ? node.arguments[0].loc.start.line : line,
     };
   }
 
@@ -215,14 +222,20 @@ function identifyCallExpression(node, ancestors, code, id) {
       code: codeSnippet, line, category: 'microtask',
       callback: callbackName,
       callbackBody: node.arguments[0] ? code.slice(node.arguments[0].start, node.arguments[0].end) : '',
+      callbackStartLine: node.arguments[0] && node.arguments[0].loc ? node.arguments[0].loc.start.line : line,
     };
   }
 
-  // fetch
+  // fetch - network I/O (uses libuv in Node.js)
   if (callee.name === 'fetch') {
+    const url = extractArgs(node.arguments, code);
+    // Check if .then() is chained
+    const callbackBody = '';
     return {
-      id, type: 'FETCH', name: `fetch(${extractArgs(node.arguments, code)})`,
-      code: codeSnippet, line, category: 'webapi',
+      id, type: 'FETCH', name: `fetch(${url})`,
+      code: codeSnippet, line, category: 'libuv',
+      callback: 'fetch callback',
+      callbackBody,
     };
   }
 
@@ -238,6 +251,36 @@ function identifyCallExpression(node, ancestors, code, id) {
       code: codeSnippet, line, category: 'libuv',
       callback: callbackName,
       callbackBody,
+      callbackStartLine: lastArg && lastArg.loc ? lastArg.loc.start.line : line,
+    };
+  }
+
+  // http.get / http.request (network I/O via libuv)
+  if (callee.type === 'MemberExpression' &&
+      callee.object.name === 'http' && 
+      (callee.property.name === 'get' || callee.property.name === 'request')) {
+    const lastArg = node.arguments[node.arguments.length - 1];
+    const callbackName = lastArg ? getCallbackName(lastArg, code) : 'callback';
+    const callbackBody = lastArg ? code.slice(lastArg.start, lastArg.end) : '';
+    return {
+      id, type: 'HTTP_REQUEST', name: `http.${callee.property.name}(...)`,
+      code: codeSnippet, line, category: 'libuv',
+      callback: callbackName,
+      callbackBody,
+      callbackStartLine: lastArg && lastArg.loc ? lastArg.loc.start.line : line,
+    };
+  }
+
+  // axios.get / axios.post (network I/O — returns Promise)
+  if (callee.type === 'MemberExpression' &&
+      callee.object.name === 'axios') {
+    const method = callee.property.name;
+    const url = extractArgs(node.arguments, code);
+    return {
+      id, type: 'AXIOS_REQUEST', name: `axios.${method}(${url})`,
+      code: codeSnippet, line, category: 'libuv',
+      callback: `axios.${method} callback`,
+      callbackBody: '',
     };
   }
 
