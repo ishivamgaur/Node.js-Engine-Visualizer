@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { FileText } from 'lucide-react';
+import { getExplanation } from '../../utils/explanations';
 
 export default function StepLog({ timeline, currentStep }) {
   const endRef = useRef(null);
@@ -32,6 +33,30 @@ export default function StepLog({ timeline, currentStep }) {
     VARIABLE_ASSIGN: 'text-text-sub',
   };
 
+  // Friendly action names for the log
+  const friendlyAction = {
+    PUSH_CALL_STACK: '▶ PUSH',
+    POP_CALL_STACK: '◀ POP',
+    LOG_OUTPUT: '📝 LOG',
+    REGISTER_WEB_API: '🌐 WEB API',
+    QUEUE_MICROTASK: '📥 MICRO',
+    QUEUE_MACROTASK: '📥 MACRO',
+    DEQUEUE_MICROTASK: '⬆ MICRO',
+    DEQUEUE_MACROTASK: '⬆ MACRO',
+    EVENT_LOOP_START: '🔄 START',
+    EVENT_LOOP_PHASE: '🔄 PHASE',
+    EVENT_LOOP_TICK: '🔄 TICK',
+    TIMER_COMPLETE: '⏰ TIMER',
+    API_COMPLETE: '✅ API',
+    LIBUV_OPERATION: '🔧 LIBUV',
+    LIBUV_COMPLETE: '✅ I/O',
+    EXECUTION_COMPLETE: '🎉 DONE',
+    INCOMING_REQUEST: '📡 REQ',
+    CALL_STACK_EMPTY: '🟢 EMPTY',
+    FUNCTION_DECLARE: '📋 FUNC',
+    VARIABLE_ASSIGN: '📦 VAR',
+  };
+
   return (
     <div className="flex flex-col bg-bg-panel border border-border-subtle rounded-lg backdrop-blur-md overflow-hidden h-full">
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border-subtle bg-bg-tertiary">
@@ -49,20 +74,32 @@ export default function StepLog({ timeline, currentStep }) {
           </div>
         ) : (
           <div className="flex flex-col gap-0.5 px-2">
-            {visibleSteps.map((step, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-2 py-0.5 rounded animate-fade-up ${
-                  i === currentStep ? 'bg-neon-cyan/10 border border-neon-cyan/20 shrink-0' : 'bg-bg-secondary shrink-0'
-                }`}
-              >
-                <span className="text-text-muted font-bold min-w-[20px] text-right text-[10px]">{step.step}</span>
-                <span className={`font-semibold min-w-[100px] text-[10px] ${actionColors[step.action] || 'text-neon-cyan'}`}>
-                  {step.action}
-                </span>
-                <span className="text-text-main flex-1 truncate text-[10px]">{step.detail}</span>
-              </div>
-            ))}
+            {visibleSteps.map((step, i) => {
+              const isCurrent = i === currentStep;
+              const explanation = isCurrent ? getExplanation(step) : null;
+              
+              return (
+                <div key={i}>
+                  <div
+                    className={`flex items-center gap-2 py-0.5 px-1 rounded animate-fade-up ${
+                      isCurrent ? 'bg-neon-cyan/10 border border-neon-cyan/20 shrink-0' : 'bg-bg-secondary shrink-0'
+                    }`}
+                  >
+                    <span className="text-text-muted font-bold min-w-[20px] text-right text-[10px]">{step.step}</span>
+                    <span className={`font-semibold min-w-[80px] text-[9px] ${actionColors[step.action] || 'text-neon-cyan'}`}>
+                      {friendlyAction[step.action] || step.action}
+                    </span>
+                    <span className="text-text-main flex-1 truncate text-[10px]">{step.detail}</span>
+                  </div>
+                  {/* Show explanation for current step */}
+                  {isCurrent && explanation && (
+                    <div className="ml-7 mr-1 mb-1 px-2 py-1.5 rounded bg-neon-cyan/5 border border-neon-cyan/10 text-[10px] text-text-sub leading-relaxed animate-fade-up">
+                      {explanation}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             <div ref={endRef} />
           </div>
         )}

@@ -1,4 +1,5 @@
 import { Play, Pause, SkipForward, SkipBack, RotateCcw, Gamepad2 } from 'lucide-react';
+import { getExplanation } from '../../utils/explanations';
 
 export default function Controls({
   isPlaying, play, pause, stepForward, stepBackward, reset,
@@ -86,21 +87,23 @@ export default function Controls({
           <span className="text-[9px] font-mono text-neon-cyan w-6 text-right">{speed}x</span>
         </div>
 
-        {/* Current action display */}
-        <div className="min-h-[50px]">
+        {/* Current action + Educational Explanation */}
+        <div className="min-h-[50px] flex-1 flex flex-col justify-end">
           {currentAction ? (
-            <div className="px-2 py-1.5 rounded bg-bg-secondary border border-border-subtle animate-fade-up">
-              <span className="text-[9px] font-bold text-neon-cyan font-mono block truncate">{currentAction.action}</span>
-              <div className="text-[10px] text-text-main font-mono mt-0.5 truncate">{currentAction.detail}</div>
-              {currentAction.phase && (
-                <div className="text-[8px] text-text-muted mt-0.5 uppercase tracking-wider">
-                  Phase: {currentAction.phase}
+            <div className="px-2.5 py-2 rounded-lg bg-bg-secondary border border-border-subtle animate-fade-up overflow-y-auto max-h-[100px]">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[9px] font-bold text-neon-cyan font-mono shrink-0">{currentAction.action}</span>
+                <span className="text-[9px] text-text-muted truncate">{currentAction.detail}</span>
+              </div>
+              {getExplanation(currentAction) && (
+                <div className="text-[11px] text-text-main leading-relaxed mt-1 border-t border-border-subtle/50 pt-1.5">
+                  {getExplanation(currentAction)}
                 </div>
               )}
             </div>
           ) : (
-            <div className="px-2 py-1.5 rounded bg-bg-secondary/50 border border-border-subtle/50 h-full flex items-center justify-center">
-              <span className="text-[9px] text-text-muted">No action</span>
+            <div className="px-2 py-1.5 rounded bg-bg-secondary/50 border border-border-subtle/50 flex items-center justify-center">
+              <span className="text-[9px] text-text-muted">Click Run, then Play to see step-by-step explanations</span>
             </div>
           )}
         </div>
