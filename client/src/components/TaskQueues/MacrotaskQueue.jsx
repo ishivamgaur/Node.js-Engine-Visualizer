@@ -1,15 +1,17 @@
+import { ListTodo, Inbox } from 'lucide-react';
+
 export default function MacrotaskQueue({ queue, highlighted }) {
   return (
     <div className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md overflow-hidden transition-all duration-300 h-full ${highlighted === 'macrotaskQueue' ? 'border-neon-orange/30 shadow-[0_0_20px_rgba(255,107,53,0.15)]' : 'border-border-subtle'}`}>
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border-subtle bg-bg-tertiary">
-        <span className="text-xs">📋</span>
+        <ListTodo size={14} className="text-text-muted" />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-text-sub">Macrotasks</span>
         <span className="ml-auto bg-bg-secondary text-text-muted text-[9px] font-bold px-1.5 py-0.5 rounded-sm border border-border-subtle">{queue.length}</span>
       </div>
       <div className="flex-1 p-3 overflow-y-auto">
         {queue.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-text-muted text-[10px] gap-1 text-center">
-            <span className="text-xl opacity-40 mb-1">📭</span>
+            <Inbox size={24} className="opacity-40 mb-1" />
             <span>No macrotasks</span>
             <span className="text-[9px] opacity-70">setTimeout, setImmediate</span>
           </div>
@@ -18,7 +20,7 @@ export default function MacrotaskQueue({ queue, highlighted }) {
             {queue.map((task, i) => (
               <div
                 key={`${task.name}-${i}`}
-                className="font-mono text-[10px] font-medium px-3 py-1.5 rounded animate-queue-slide bg-neon-orange/10 text-neon-orange border-l-2 border-l-neon-orange truncate"
+                className="font-mono text-[10px] font-medium px-3 py-0.5 rounded animate-queue-slide bg-neon-orange/10 text-neon-orange border-l-2 border-l-neon-orange truncate"
                 title={task.name}
               >
                 <span className="opacity-50 mr-1.5 text-[9px]">#{i + 1}</span>

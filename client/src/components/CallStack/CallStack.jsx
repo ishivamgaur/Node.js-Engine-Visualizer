@@ -1,10 +1,12 @@
+import { Layers, Inbox } from 'lucide-react';
+
 export default function CallStack({ stack, highlighted }) {
   return (
     <div
       className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md overflow-hidden transition-all duration-300 h-full ${highlighted === "callStack" ? "border-neon-cyan/30 shadow-[0_0_20px_rgba(0,212,255,0.15)]" : "border-border-subtle"}`}
     >
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border-subtle bg-bg-tertiary">
-        <span className="text-xs">📚</span>
+        <Layers size={14} className="text-text-muted" />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-text-sub">
           Call Stack
         </span>
@@ -15,7 +17,7 @@ export default function CallStack({ stack, highlighted }) {
       <div className="flex-1 p-2 overflow-y-auto flex flex-col justify-end">
         {stack.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-text-muted text-[10px] gap-1">
-            <span className="text-xl opacity-50 mb-1">📭</span>
+            <Inbox size={24} className="opacity-50 mb-1" />
             <span>Stack is empty</span>
           </div>
         ) : (
@@ -45,7 +47,7 @@ export default function CallStack({ stack, highlighted }) {
               return (
                 <div
                   key={`${frame.name}-${i}`}
-                  className={`font-mono text-[10px] font-medium px-2 py-1 rounded animate-stack-push truncate ${colors[frame.type] || colors.main}`}
+                  className={`font-mono text-[10px] font-medium px-2 py-0.5 rounded animate-stack-push truncate ${colors[frame.type] || colors.main}`}
                   title={frame.name}
                 >
                   {frame.name}

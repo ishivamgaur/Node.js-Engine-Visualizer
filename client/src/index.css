@@ -14,9 +14,9 @@
   --color-neon-pink: #f472b6;
   --color-neon-yellow: #fbbf24;
   --color-neon-red: #ef4444;
-  --color-text-main: #e8e8f0;
-  --color-text-sub: #9898b0;
-  --color-text-muted: #5a5a74;
+  --color-text-main: #ffffff;
+  --color-text-sub: #cbd5e1;
+  --color-text-muted: #94a3b8;
   --color-border-subtle: rgba(255, 255, 255, 0.06);
   --color-border-light: rgba(255, 255, 255, 0.1);
   --font-mono: 'JetBrains Mono', monospace;
