@@ -40,18 +40,18 @@ export default function StepLog({ timeline, currentStep }) {
           {visibleSteps.length} / {timeline.length}
         </span>
       </div>
-      <div className="flex-1 p-3 overflow-y-auto font-mono">
+      <div className="flex-1 overflow-y-auto font-mono">
         {visibleSteps.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-text-muted text-[10px] gap-1">
             <span className="text-xl opacity-40 mb-1">📜</span>
             <span>Run code to see execution log</span>
           </div>
         ) : (
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-0.5 px-2">
             {visibleSteps.map((step, i) => (
               <div
                 key={i}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded animate-fade-up ${
+                className={`flex items-center gap-2 py-1.5 rounded animate-fade-up ${
                   i === currentStep ? 'bg-neon-cyan/10 border border-neon-cyan/20 shrink-0' : 'bg-bg-secondary shrink-0'
                 }`}
               >
@@ -59,7 +59,7 @@ export default function StepLog({ timeline, currentStep }) {
                 <span className={`font-semibold min-w-[100px] text-[10px] ${actionColors[step.action] || 'text-neon-cyan'}`}>
                   {step.action}
                 </span>
-                <span className="text-text-main flex-1 truncate">{step.detail}</span>
+                <span className="text-text-main flex-1 truncate text-[10px]">{step.detail}</span>
               </div>
             ))}
             <div ref={endRef} />

@@ -23,11 +23,31 @@
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  .light {
+    --color-bg-primary: #f0f4f8;
+    --color-bg-secondary: #ffffff;
+    --color-bg-tertiary: #e2e8f0;
+    --color-bg-panel: rgba(255, 255, 255, 0.9);
+    --color-bg-panel-hover: rgba(248, 250, 252, 0.95);
+    
+    /* Slightly darker/more saturated neons for visibility on light backgrounds */
+    --color-neon-cyan: #0284c7;
+    --color-neon-green: #16a34a;
+    --color-neon-orange: #ea580c;
+    --color-neon-purple: #9333ea;
+    --color-neon-pink: #db2777;
+    --color-neon-yellow: #ca8a04;
+    --color-neon-red: #dc2626;
+    
+    --color-text-main: #0f172a;
+    --color-text-sub: #334155;
+    --color-text-muted: #64748b;
+    --color-border-subtle: rgba(0, 0, 0, 0.08);
+    --color-border-light: rgba(0, 0, 0, 0.15);
+  }
 }
+
 
 html, body, #root {
   height: 100%;

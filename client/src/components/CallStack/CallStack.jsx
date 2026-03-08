@@ -12,7 +12,7 @@ export default function CallStack({ stack, highlighted }) {
           {stack.length}
         </span>
       </div>
-      <div className="flex-1 p-3 overflow-y-auto flex flex-col justify-end">
+      <div className="flex-1 p-2 overflow-y-auto flex flex-col justify-end">
         {stack.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-text-muted text-[10px] gap-1">
             <span className="text-xl opacity-50 mb-1">📭</span>
@@ -45,7 +45,7 @@ export default function CallStack({ stack, highlighted }) {
               return (
                 <div
                   key={`${frame.name}-${i}`}
-                  className={`font-mono text-[10px] font-medium px-3 py-1.5 rounded animate-stack-push truncate ${colors[frame.type] || colors.main}`}
+                  className={`font-mono text-[10px] font-medium px-2 py-1 rounded animate-stack-push truncate ${colors[frame.type] || colors.main}`}
                   title={frame.name}
                 >
                   {frame.name}
