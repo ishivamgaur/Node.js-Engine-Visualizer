@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
+import { Repeat, Zap, Timer, Hourglass, Settings2, ArrowRightLeft, CheckCircle2, Lock } from 'lucide-react';
 
 const PHASES = [
-  { name: 'Timers', color: '#ff6b35', icon: '⏱️', desc: 'Executes callbacks from setTimeout() and setInterval()', shortDesc: 'setTimeout, setInterval' },
-  { name: 'Pending', color: '#fbbf24', icon: '⏳', desc: 'Handles deferred I/O callbacks from the previous cycle', shortDesc: 'I/O callbacks' },
-  { name: 'Idle/Prepare', color: '#a855f7', icon: '💤', desc: 'Internal phase used by Node.js for housekeeping', shortDesc: 'Internal use' },
-  { name: 'Poll', color: '#00d4ff', icon: '🔄', desc: 'Retrieves new I/O events and executes their callbacks', shortDesc: 'New I/O events' },
-  { name: 'Check', color: '#00ff88', icon: '✅', desc: 'Executes setImmediate() callbacks after Poll phase', shortDesc: 'setImmediate' },
-  { name: 'Close', color: '#f472b6', icon: '🔒', desc: 'Handles close event callbacks like socket.on("close")', shortDesc: 'Close callbacks' },
+  { name: 'Timers', color: '#ff6b35', icon: <Timer size={18} />, desc: 'Executes callbacks from setTimeout() and setInterval()', shortDesc: 'setTimeout, setInterval' },
+  { name: 'Pending', color: '#fbbf24', icon: <Hourglass size={18} />, desc: 'Handles deferred I/O callbacks from the previous cycle', shortDesc: 'I/O callbacks' },
+  { name: 'Idle/Prepare', color: '#a855f7', icon: <Settings2 size={18} />, desc: 'Internal phase used by Node.js for housekeeping', shortDesc: 'Internal use' },
+  { name: 'Poll', color: '#00d4ff', icon: <ArrowRightLeft size={18} />, desc: 'Retrieves new I/O events and executes their callbacks', shortDesc: 'New I/O events' },
+  { name: 'Check', color: '#00ff88', icon: <CheckCircle2 size={18} />, desc: 'Executes setImmediate() callbacks after Poll phase', shortDesc: 'setImmediate' },
+  { name: 'Close', color: '#f472b6', icon: <Lock size={18} />, desc: 'Handles close event callbacks like socket.on("close")', shortDesc: 'Close callbacks' },
 ];
 
 export default function EventLoop({ highlighted, currentAction, isPlaying }) {
@@ -45,7 +46,7 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
   return (
     <div className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md overflow-hidden transition-all duration-300 h-full ${(!isComplete && highlighted === 'eventLoop') ? 'border-neon-cyan/30 shadow-[0_0_20px_rgba(0,212,255,0.15)]' : 'border-border-subtle'}`}>
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border-subtle bg-bg-tertiary z-10">
-        <span className="text-xs">🔄</span>
+        <Repeat size={14} className="text-text-muted" />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-text-sub">Event Loop</span>
         {isActive && (
           <span className="ml-auto text-[8px] font-bold px-1.5 py-0.5 rounded-sm border border-neon-green text-neon-green animate-pulse">
@@ -112,8 +113,8 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
                 Event Loop
               </div>
               {isMicrotaskPhase && (
-                <div className="text-[7px] text-neon-purple font-semibold mt-0.5 animate-pulse">
-                  ⚡ Microtasks
+                <div className="flex items-center justify-center gap-1 text-[7px] text-neon-purple font-semibold mt-0.5 animate-pulse">
+                  <Zap size={8} /> <span>Microtasks</span>
                 </div>
               )}
               {isComplete && (
@@ -146,7 +147,7 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
                     boxShadow: active ? `0 0 16px ${phase.color}44, 0 0 32px ${phase.color}22` : hovered ? `0 0 8px ${phase.color}22` : 'none',
                   }}
                 >
-                  <span className="text-[11px] mb-[1px]">{phase.icon}</span>
+                  <div className="mb-[1px] opacity-90">{phase.icon}</div>
                   <span
                     className="text-[6px] font-bold uppercase tracking-wide leading-none"
                     style={{ color: active || hovered ? phase.color : 'var(--color-text-muted)' }}
@@ -175,7 +176,7 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
         <div className="shrink-0 border-t border-border-subtle bg-bg-tertiary/50 px-3 py-2">
           {displayPhase >= 0 ? (
             <div className="flex items-start gap-2">
-              <span className="text-sm shrink-0">{PHASES[displayPhase].icon}</span>
+              <div className="shrink-0 opacity-80 mt-1">{PHASES[displayPhase].icon}</div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-bold" style={{ color: PHASES[displayPhase].color }}>
@@ -188,7 +189,7 @@ export default function EventLoop({ highlighted, currentAction, isPlaying }) {
             </div>
           ) : isMicrotaskPhase ? (
             <div className="flex items-start gap-2">
-              <span className="text-sm shrink-0">⚡</span>
+              <Zap size={18} className="shrink-0 text-neon-purple mt-1" />
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-bold text-neon-purple">Microtask Checkpoint</span>

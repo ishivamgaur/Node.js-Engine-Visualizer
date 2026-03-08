@@ -1,3 +1,5 @@
+import { Play, Pause, SkipForward, SkipBack, RotateCcw, Gamepad2 } from 'lucide-react';
+
 export default function Controls({
   isPlaying, play, pause, stepForward, stepBackward, reset,
   speed, setSpeed, currentStep, totalSteps, currentAction
@@ -7,7 +9,7 @@ export default function Controls({
   return (
     <div className="flex flex-col bg-bg-panel border border-border-subtle rounded-lg backdrop-blur-md overflow-hidden h-full">
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border-subtle bg-bg-tertiary">
-        <span className="text-xs">🎮</span>
+        <Gamepad2 size={14} className="text-text-muted" />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-text-sub">Controls</span>
         {totalSteps > 0 && (
           <span className="ml-auto text-[9px] font-mono text-text-muted bg-bg-secondary px-1.5 py-0.5 rounded-sm border border-border-subtle">
@@ -17,38 +19,46 @@ export default function Controls({
       </div>
       <div className="p-3 flex flex-col gap-2 flex-1 justify-between">
         {/* Transport buttons */}
-        <div className="flex items-center gap-1.5 justify-center">
+        <div className="flex items-center gap-3 justify-center">
           <button
             onClick={reset}
-            className="w-7 h-7 flex items-center justify-center rounded bg-bg-tertiary border border-border-subtle text-text-sub hover:text-text-main hover:border-border-light transition-all duration-150 cursor-pointer text-xs"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:text-text-main hover:bg-bg-tertiary transition-all duration-200 cursor-pointer group"
             title="Reset"
-          >⏮</button>
+          >
+            <RotateCcw size={16} className="group-hover:-rotate-90 transition-transform duration-300" />
+          </button>
+          
           <button
             onClick={stepBackward}
-            className="w-7 h-7 flex items-center justify-center rounded bg-bg-tertiary border border-border-subtle text-text-sub hover:text-text-main hover:border-border-light transition-all duration-150 cursor-pointer text-xs"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:text-text-main hover:bg-bg-tertiary transition-all duration-200 cursor-pointer"
             title="Step back"
-          >⏪</button>
+          >
+            <SkipBack size={16} />
+          </button>
+          
           <button
             onClick={isPlaying ? pause : play}
-            className="w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-all duration-200 cursor-pointer text-sm border-0"
-            style={{
-              background: isPlaying
-                ? 'linear-gradient(135deg, #ff6b35, #cc5528)'
-                : 'linear-gradient(135deg, #00ff88, #00cc6a)',
-              color: '#000',
-              boxShadow: isPlaying
-                ? '0 0 15px rgba(255,107,53,0.3)'
-                : '0 0 15px rgba(0,255,136,0.3)',
-            }}
+            className={`w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer border hover:scale-105 active:scale-95 ${
+              isPlaying 
+                ? 'bg-neon-orange/10 text-neon-orange border-neon-orange/40 hover:shadow-[0_0_20px_rgba(255,107,53,0.4)] hover:bg-neon-orange/20'
+                : 'bg-neon-green/10 text-neon-green border-neon-green/40 hover:shadow-[0_0_20px_rgba(0,255,136,0.4)] hover:bg-neon-green/20'
+            }`}
             title={isPlaying ? 'Pause' : 'Play'}
           >
-            {isPlaying ? '⏸' : '▶'}
+            {isPlaying ? (
+              <Pause size={20} weight="fill" className="fill-current stroke-[2px]" />
+            ) : (
+              <Play size={22} weight="fill" className="fill-current stroke-[2px] ml-1" />
+            )}
           </button>
+          
           <button
             onClick={stepForward}
-            className="w-7 h-7 flex items-center justify-center rounded bg-bg-tertiary border border-border-subtle text-text-sub hover:text-text-main hover:border-border-light transition-all duration-150 cursor-pointer text-xs"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:text-text-main hover:bg-bg-tertiary transition-all duration-200 cursor-pointer"
             title="Step forward"
-          >⏩</button>
+          >
+            <SkipForward size={16} />
+          </button>
         </div>
 
         {/* Progress bar */}

@@ -1,3 +1,5 @@
+import { Settings, Wrench } from 'lucide-react';
+
 export default function Libuv({ ops, highlighted }) {
   const threads = [0, 1, 2, 3];
   const activeThreads = new Set(ops.map(o => o.thread));
@@ -5,7 +7,7 @@ export default function Libuv({ ops, highlighted }) {
   return (
     <div className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md overflow-hidden transition-all duration-300 h-full ${highlighted === 'libuv' ? 'border-neon-green/30 shadow-[0_0_20px_rgba(0,255,136,0.15)]' : 'border-border-subtle'}`}>
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border-subtle bg-bg-tertiary">
-        <span className="text-xs">⚙️</span>
+        <Settings size={14} className="text-text-muted" />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-text-sub">Libuv Thread Pool</span>
         <span className="ml-auto bg-bg-secondary text-text-muted text-[9px] font-bold px-1.5 py-0.5 rounded-sm border border-border-subtle">{ops.length}</span>
       </div>
@@ -43,7 +45,7 @@ export default function Libuv({ ops, highlighted }) {
         {/* Architecture label */}
         <div className="text-center mt-auto pt-1">
           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-border-subtle bg-bg-tertiary">
-            <span className="text-[8px]">🔧</span>
+            <Wrench size={10} className="text-text-muted" />
             <span className="text-[8px] font-semibold text-text-muted uppercase tracking-wider">libuv - async I/O</span>
           </div>
         </div>
