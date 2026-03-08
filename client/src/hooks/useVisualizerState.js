@@ -45,6 +45,10 @@ console.log('End');`);
     ? timeline[currentStep]
     : null;
 
+  const currentLine = currentStep >= 0 && currentStep < timeline.length
+    ? timeline[currentStep].line || null
+    : null;
+
   // Analyze code
   const analyzeCode = useCallback(async () => {
     setError(null);
@@ -122,6 +126,7 @@ console.log('End');`);
   return {
     code, setCode,
     timeline, currentStep, currentState, currentHighlight, currentAction,
+    currentLine,
     isPlaying, speed, setSpeed,
     error, isLoading,
     mode, setMode,

@@ -10,6 +10,7 @@ import Libuv from './components/Libuv/Libuv';
 import Console from './components/Console/Console';
 import Controls from './components/Controls/Controls';
 import StepLog from './components/StepLog/StepLog';
+
 import ThemeToggle from './components/ThemeToggle/ThemeToggle';
 import { useTheme } from './hooks/useTheme';
 
@@ -17,6 +18,7 @@ export default function App() {
   const v = useVisualizerState();
   const { theme, toggleTheme } = useTheme();
   const [samples, setSamples] = useState([]);
+  const [serverSamples, setServerSamples] = useState([]);
 
   // Fetch sample snippets on mount
   useEffect(() => {
@@ -24,7 +26,20 @@ export default function App() {
       .then(r => r.json())
       .then(d => d.success && setSamples(d.samples))
       .catch(() => {});
+    fetch('http://localhost:5000/api/server-samples')
+      .then(r => r.json())
+      .then(d => d.success && setServerSamples(d.samples))
+      .catch(() => {});
   }, []);
+
+  // Auto-load first server sample when switching to Concurrent mode
+  useEffect(() => {
+    if (v.mode === 'multi-request' && serverSamples.length > 0) {
+      v.setCode(serverSamples[0].code);
+    }
+  }, [v.mode, serverSamples]);
+
+  const activeSamples = v.mode === 'multi-request' ? serverSamples : samples;
 
   return (
     <div className="h-screen w-screen bg-bg-primary overflow-hidden flex flex-col"
@@ -60,7 +75,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main grid */}
+      {/* Main content area */}
       <div className="flex-1 grid grid-cols-12 grid-rows-3 gap-3 p-3 min-h-0">
         {/* Row 1 & 2 Left: Code Editor (Spans 4 cols, 2 rows) */}
         <div className="col-span-4 row-span-2 h-full">
@@ -70,8 +85,9 @@ export default function App() {
             onRun={v.analyzeCode} isLoading={v.isLoading}
             mode={v.mode} setMode={v.setMode}
             numRequests={v.numRequests} setNumRequests={v.setNumRequests}
-            samples={samples}
+            samples={activeSamples}
             onSelectSample={s => v.setCode(s.code)}
+            currentLine={v.currentLine}
           />
         </div>
 

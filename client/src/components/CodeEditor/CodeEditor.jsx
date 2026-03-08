@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { FileCode2, Minus, Plus, Play, Loader2 } from 'lucide-react';
 
-export default function CodeEditor({ theme, code, setCode, onRun, isLoading, mode, setMode, numRequests, setNumRequests, samples, onSelectSample }) {
+export default function CodeEditor({ theme, code, setCode, onRun, isLoading, mode, setMode, numRequests, setNumRequests, samples, onSelectSample, currentLine }) {
   const isLight = theme === 'light';
   const [fontSize, setFontSize] = useState(12);
+  const editorRef = useRef(null);
+  const decorationsRef = useRef([]);
   
   const handleEditorWillMount = (monaco) => {
     monaco.editor.defineTheme('custom-dark', {
@@ -16,6 +18,43 @@ export default function CodeEditor({ theme, code, setCode, onRun, isLoading, mod
       },
     });
   }
+
+  const handleEditorDidMount = (editor) => {
+    editorRef.current = editor;
+  };
+
+  // Update line highlight decoration when currentLine changes
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    if (currentLine && currentLine > 0) {
+      const newDecorations = [
+        {
+          range: {
+            startLineNumber: currentLine,
+            startColumn: 1,
+            endLineNumber: currentLine,
+            endColumn: 1,
+          },
+          options: {
+            isWholeLine: true,
+            className: 'active-line-highlight',
+            glyphMarginClassName: 'active-line-glyph',
+            overviewRuler: {
+              color: '#00d4ff',
+              position: 1,
+            },
+          },
+        },
+      ];
+      decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
+      editor.revealLineInCenter(currentLine);
+    } else {
+      // Clear decorations
+      decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
+    }
+  }, [currentLine]);
 
   return (
     <div className="flex flex-col bg-bg-panel border border-border-subtle rounded-lg backdrop-blur-md overflow-hidden h-full">
@@ -37,8 +76,8 @@ export default function CodeEditor({ theme, code, setCode, onRun, isLoading, mod
               type="number" min="1" max="10"
               value={numRequests}
               onChange={e => setNumRequests(parseInt(e.target.value) || 3)}
-              className="bg-bg-secondary text-text-main border border-border-subtle rounded px-1 py-0.5 text-[10px] font-mono w-10 text-center focus:outline-none focus:border-neon-cyan"
-              title="Concurrent requests"
+              className="bg-bg-secondary text-text-main border border-border-subtle rounded px-1 py-0.5 text-[10px] font-mono w-14 text-center focus:outline-none focus:border-neon-cyan"
+              title="Concurrent requests (1-10)"
             />
           )}
           <button
@@ -75,6 +114,7 @@ export default function CodeEditor({ theme, code, setCode, onRun, isLoading, mod
           defaultLanguage="javascript"
           theme={isLight ? 'light' : 'custom-dark'}
           beforeMount={handleEditorWillMount}
+          onMount={handleEditorDidMount}
           value={code}
           onChange={val => setCode(val || '')}
           options={{
@@ -93,6 +133,7 @@ export default function CodeEditor({ theme, code, setCode, onRun, isLoading, mod
             hideCursorInOverviewRuler: true,
             overviewRulerBorder: false,
             scrollbar: { verticalScrollbarSize: 6, horizontalScrollbarSize: 6 },
+            glyphMargin: true,
           }}
         />
         
