@@ -1,6 +1,19 @@
 import Editor from '@monaco-editor/react';
 
-export default function CodeEditor({ code, setCode, onRun, isLoading, mode, setMode, numRequests, setNumRequests, samples, onSelectSample }) {
+export default function CodeEditor({ theme, code, setCode, onRun, isLoading, mode, setMode, numRequests, setNumRequests, samples, onSelectSample }) {
+  const isLight = theme === 'light';
+  
+  const handleEditorWillMount = (monaco) => {
+    monaco.editor.defineTheme('custom-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#000000',
+      },
+    });
+  };
+
   return (
     <div className="flex flex-col bg-bg-panel border border-border-subtle rounded-lg backdrop-blur-md overflow-hidden h-full">
       {/* Header */}
@@ -53,11 +66,12 @@ export default function CodeEditor({ code, setCode, onRun, isLoading, mode, setM
       )}
 
       {/* Editor */}
-      <div className="flex-1 min-h-0 bg-[#1e1e1e]">
+      <div className={`flex-1 min-h-0 ${isLight ? 'bg-white' : 'bg-[#000]'}`}>
         <Editor
           height="100%"
           defaultLanguage="javascript"
-          theme="vs-dark"
+          theme={isLight ? 'light' : 'custom-dark'}
+          beforeMount={handleEditorWillMount}
           value={code}
           onChange={val => setCode(val || '')}
           options={{

@@ -10,9 +10,12 @@ import Libuv from './components/Libuv/Libuv';
 import Console from './components/Console/Console';
 import Controls from './components/Controls/Controls';
 import StepLog from './components/StepLog/StepLog';
+import ThemeToggle from './components/ThemeToggle/ThemeToggle';
+import { useTheme } from './hooks/useTheme';
 
 export default function App() {
   const v = useVisualizerState();
+  const { theme, toggleTheme } = useTheme();
   const [samples, setSamples] = useState([]);
 
   // Fetch sample snippets on mount
@@ -53,6 +56,7 @@ export default function App() {
               {v.isPlaying ? 'Running' : v.timeline.length > 0 ? 'Paused' : 'Ready'}
             </span>
           </div>
+          <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
         </div>
       </header>
 
@@ -61,6 +65,7 @@ export default function App() {
         {/* Row 1 & 2 Left: Code Editor (Spans 4 cols, 2 rows) */}
         <div className="col-span-4 row-span-2 h-full">
           <CodeEditor
+            theme={theme}
             code={v.code} setCode={v.setCode}
             onRun={v.analyzeCode} isLoading={v.isLoading}
             mode={v.mode} setMode={v.setMode}
