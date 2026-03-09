@@ -4,6 +4,7 @@ const {
   generateTimeline,
   generateMultiRequestTimeline,
 } = require("../engine/simulator");
+const { Interpreter } = require("../engine/interpreter");
 
 // POST /api/analyze - Analyze code and return execution timeline
 router.post("/analyze", (req, res) => {
@@ -36,6 +37,21 @@ router.post("/multi-request", (req, res) => {
       totalSteps: timeline.length,
       numRequests: num,
     });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/js-execution - Simulate JS Execution (Memory and closures)
+router.post("/js-execution", (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code || typeof code !== "string") {
+      return res.status(400).json({ error: "Code is required" });
+    }
+    const interpreter = new Interpreter(code);
+    const timeline = interpreter.run();
+    res.json({ success: true, timeline, totalSteps: timeline.length });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -208,6 +224,65 @@ Promise.resolve().then(() => {
 console.log('Handler returned');`,
     },
   ];
+
+  res.json({ success: true, samples });
+});
+
+// JS Execution samples for Closures and Hoisting
+router.get("/js-execution-samples", (req, res) => {
+  const samples = [
+    {
+      title: "Hoisting & Temporal Dead Zone",
+      description: "Shows how var is initialized to undefined but let/const stay uninitialized in the TDZ.",
+      code: `console.log('Start');
+var a = 10;
+let b = 20;
+const c = 30;
+
+function demo() {
+  var d = 40;
+  let e = 50;
+  console.log('Inside demo', a, b, c, d, e);
+}
+
+demo();`
+    },
+    {
+      title: "Closures (Lexical Scope)",
+      description: "Visualizes how inner functions maintain a reference to their outer environment.",
+      code: `function outer() {
+  let count = 0;
+  
+  return function inner() {
+    count++;
+    console.log('Count is', count);
+  }
+}
+
+const myClosure = outer();
+myClosure();
+myClosure();`
+    },
+    {
+      title: "Async Closures",
+      description: "Shows how closures persist even when called asynchronously later via the Event Loop.",
+      code: `function setupHandlers() {
+  let message = 'Hello from closure!';
+  
+  setTimeout(function cb1() {
+    console.log(message);
+    message = 'Message updated!';
+  }, 100);
+  
+  setTimeout(function cb2() {
+    console.log(message);
+  }, 200);
+}
+
+setupHandlers();`
+    }
+  ];
+
 
   res.json({ success: true, samples });
 });
