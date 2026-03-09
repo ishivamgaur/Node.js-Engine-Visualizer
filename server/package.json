@@ -1,6 +1,7 @@
 {
   "name": "engine-visualizer-server",
   "version": "1.0.0",
+  "license": "AGPL-3.0",
   "description": "Backend for Node.js Engine Visualizer",
   "main": "server.js",
   "scripts": {
