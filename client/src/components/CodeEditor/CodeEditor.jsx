@@ -70,6 +70,7 @@ export default function CodeEditor({ theme, code, setCode, onRun, isLoading, mod
           >
             <option value="code">Analysis</option>
             <option value="multi-request">Concurrent</option>
+            <option value="js-execution">JS Execution</option>
           </select>
           {mode === 'multi-request' && (
             <input

@@ -56,10 +56,16 @@ console.log('End');`);
     setIsPlaying(false);
     clearInterval(intervalRef.current);
     try {
-      const endpoint = mode === 'multi-request' ? '/multi-request' : '/analyze';
-      const body = mode === 'multi-request'
-        ? { code, numRequests }
-        : { code };
+      let endpoint = '/analyze';
+      let body = { code };
+
+      if (mode === 'multi-request') {
+        endpoint = '/multi-request';
+        body = { code, numRequests };
+      } else if (mode === 'js-execution') {
+        endpoint = '/js-execution';
+      }
+
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

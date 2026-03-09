@@ -10,6 +10,7 @@ import Libuv from './components/Libuv/Libuv';
 import Console from './components/Console/Console';
 import Controls from './components/Controls/Controls';
 import StepLog from './components/StepLog/StepLog';
+import ExecutionContexts from './components/Memory/ExecutionContexts';
 
 import ThemeToggle from './components/ThemeToggle/ThemeToggle';
 import { useTheme } from './hooks/useTheme';
@@ -19,6 +20,7 @@ export default function App() {
   const { theme, toggleTheme } = useTheme();
   const [samples, setSamples] = useState([]);
   const [serverSamples, setServerSamples] = useState([]);
+  const [jsSamples, setJsSamples] = useState([]);
 
   // Fetch sample snippets on mount
   useEffect(() => {
@@ -30,16 +32,26 @@ export default function App() {
       .then(r => r.json())
       .then(d => d.success && setServerSamples(d.samples))
       .catch(() => {});
+    fetch('http://localhost:5000/api/js-execution-samples')
+      .then(r => r.json())
+      .then(d => d.success && setJsSamples(d.samples))
+      .catch(() => {});
   }, []);
 
-  // Auto-load first server sample when switching to Concurrent mode
+  // Auto-load first server/js sample when switching mode
   useEffect(() => {
     if (v.mode === 'multi-request' && serverSamples.length > 0) {
       v.setCode(serverSamples[0].code);
+    } else if (v.mode === 'js-execution' && jsSamples.length > 0) {
+      v.setCode(jsSamples[0].code);
+    } else if (v.mode === 'code' && samples.length > 0) {
+      v.setCode(samples[0].code);
     }
-  }, [v.mode, serverSamples]);
+  }, [v.mode, serverSamples, jsSamples, samples]);
 
-  const activeSamples = v.mode === 'multi-request' ? serverSamples : samples;
+  const activeSamples = v.mode === 'multi-request' ? serverSamples 
+                      : v.mode === 'js-execution' ? jsSamples 
+                      : samples;
 
   return (
     <div className="h-screen w-screen bg-bg-primary overflow-hidden flex flex-col"
@@ -105,9 +117,20 @@ export default function App() {
         </div>
 
         {/* Row 1 & 2 Right: Event Loop (Spans 4 cols, 2 rows) */}
-        <div className="col-span-4 row-span-2 h-full">
-          <EventLoop highlighted={v.currentHighlight} currentAction={v.currentAction} isPlaying={v.isPlaying} />
-        </div>
+        {v.mode === 'js-execution' ? (
+          <>
+            <div className="col-span-2 row-span-2 h-full">
+              <ExecutionContexts contexts={v.currentState.executionContexts || []} />
+            </div>
+            <div className="col-span-2 row-span-2 h-full">
+              <EventLoop highlighted={v.currentHighlight} currentAction={v.currentAction} isPlaying={v.isPlaying} />
+            </div>
+          </>
+        ) : (
+          <div className="col-span-4 row-span-2 h-full">
+            <EventLoop highlighted={v.currentHighlight} currentAction={v.currentAction} isPlaying={v.isPlaying} />
+          </div>
+        )}
 
         {/* Row 2 Middle: Web APIs & Libuv */}
         <div className="col-span-2 row-span-1 h-full">
