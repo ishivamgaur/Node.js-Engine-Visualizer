@@ -9,7 +9,9 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://node-js-engine-visualizer.vercel.app'
+  'https://node-js-engine-visualizer.vercel.app',
+  'https://engine.shivamgaur.space',
+  'https://www.engine.shivamgaur.space'
 ];
 
 app.use(cors({
