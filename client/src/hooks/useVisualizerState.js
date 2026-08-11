@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { generateTimeline, generateMultiRequestTimeline } from '../engine/simulator';
+import { Interpreter } from '../engine/interpreter';
 
 export function useVisualizerState() {
   const [code, setCode] = useState(`console.log('Start');
@@ -50,36 +50,34 @@ console.log('End');`);
     : null;
 
   // Analyze code
-  const analyzeCode = useCallback(async () => {
+  const analyzeCode = useCallback(() => {
     setError(null);
     setIsLoading(true);
     setIsPlaying(false);
     clearInterval(intervalRef.current);
-    try {
-      let endpoint = '/analyze';
-      let body = { code };
-
-      if (mode === 'multi-request') {
-        endpoint = '/multi-request';
-        body = { code, numRequests };
-      } else if (mode === 'js-execution') {
-        endpoint = '/js-execution';
+    
+    // Use setTimeout to allow UI to update to loading state before heavy computation
+    setTimeout(() => {
+      try {
+        let newTimeline = [];
+        if (mode === 'multi-request') {
+          const num = Math.min(Math.max(parseInt(numRequests) || 3, 1), 10);
+          newTimeline = generateMultiRequestTimeline(code, num);
+        } else if (mode === 'js-execution') {
+          const interpreter = new Interpreter(code);
+          newTimeline = interpreter.run();
+        } else {
+          newTimeline = generateTimeline(code);
+        }
+        
+        setTimeline(newTimeline);
+        setCurrentStep(-1);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
-
-      const res = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error);
-      setTimeline(data.timeline);
-      setCurrentStep(-1);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    }, 10);
   }, [code, mode, numRequests]);
 
   // Playback controls

@@ -1,5 +1,5 @@
-const acorn = require('acorn');
-const walk = require('acorn-walk');
+import * as acorn from 'acorn';
+import * as walk from 'acorn-walk';
 
 /**
  * Parse JavaScript code and extract execution-relevant information.
@@ -324,4 +324,4 @@ function getCallbackName(arg, code) {
   return 'callback';
 }
 
-module.exports = { parseCode };
+export { parseCode };

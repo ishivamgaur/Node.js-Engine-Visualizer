@@ -13,6 +13,8 @@
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.2.1",
+    "acorn": "^8.18.0",
+    "acorn-walk": "^8.3.5",
     "lucide-react": "^0.577.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

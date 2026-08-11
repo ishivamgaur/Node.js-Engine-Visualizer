@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useVisualizerState } from './hooks/useVisualizerState';
+import { samples, serverSamples, jsExecutionSamples as jsSamples } from './utils/samples';
 import CodeEditor from './components/CodeEditor/CodeEditor';
 import CallStack from './components/CallStack/CallStack';
 import MicrotaskQueue from './components/TaskQueues/MicrotaskQueue';
@@ -18,27 +19,6 @@ import { useTheme } from './hooks/useTheme';
 export default function App() {
   const v = useVisualizerState();
   const { theme, toggleTheme } = useTheme();
-  const [samples, setSamples] = useState([]);
-  const [serverSamples, setServerSamples] = useState([]);
-  const [jsSamples, setJsSamples] = useState([]);
-
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-  // Fetch sample snippets on mount
-  useEffect(() => {
-    fetch(`${API_URL}/samples`)
-      .then(r => r.json())
-      .then(d => d.success && setSamples(d.samples))
-      .catch(() => {});
-    fetch(`${API_URL}/server-samples`)
-      .then(r => r.json())
-      .then(d => d.success && setServerSamples(d.samples))
-      .catch(() => {});
-    fetch(`${API_URL}/js-execution-samples`)
-      .then(r => r.json())
-      .then(d => d.success && setJsSamples(d.samples))
-      .catch(() => {});
-  }, []);
 
   // Auto-load first server/js sample when switching mode
   useEffect(() => {

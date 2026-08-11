@@ -1,4 +1,4 @@
-const { parseCode } = require('./parser');
+import { parseCode } from './parser.js';
 
 /**
  * Generates a step-by-step execution timeline from parsed JavaScript code.
@@ -693,4 +693,4 @@ function generateMultiRequestTimeline(code, numRequests) {
   }
 }
 
-module.exports = { generateTimeline, generateMultiRequestTimeline };
+export { generateTimeline, generateMultiRequestTimeline };

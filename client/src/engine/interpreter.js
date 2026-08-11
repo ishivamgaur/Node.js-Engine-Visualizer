@@ -1,4 +1,4 @@
-const acorn = require('acorn');
+import * as acorn from 'acorn';
 
 /**
  * Environment class represents a Lexical Environment (Scope) in JavaScript.
@@ -566,4 +566,4 @@ function generateTimeline(code) {
   return interpreter.run();
 }
 
-module.exports = { Interpreter, Environment, generateTimeline };
+export { Interpreter, Environment, generateTimeline };
