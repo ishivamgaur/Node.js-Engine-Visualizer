@@ -26,9 +26,21 @@ export default function RenderPreview({ phase, htmlContent = '', highlighted, on
     </style>
   `;
   
-  const displayHtml = (!hasPaint && hasLayout) 
-    ? htmlContent.replace('</head>', `${wireframeStyles}</head>`)
-    : htmlContent;
+  const globalIframeStyles = `
+    <style>
+      ::-webkit-scrollbar { display: none; }
+      html, body { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+  `;
+  
+  let displayHtml = htmlContent;
+  if (displayHtml.includes('</head>')) {
+    displayHtml = displayHtml.replace('</head>', `${globalIframeStyles}</head>`);
+  }
+  
+  if (!hasPaint && hasLayout) {
+    displayHtml = displayHtml.replace('</head>', `${wireframeStyles}</head>`);
+  }
 
   return (
     <div className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md overflow-hidden h-full ${isHighlighted ? 'border-neon-green/30 shadow-[0_0_20px_rgba(0,255,136,0.15)]' : 'border-border-subtle'}`}>
