@@ -1,6 +1,7 @@
-﻿import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { generateTimeline, generateMultiRequestTimeline } from '../engine/simulator';
 import { Interpreter } from '../engine/interpreter';
+import { generateBrowserTimeline } from '../engine/browserSimulator';
 
 export function useVisualizerState() {
   const [code, setCode] = useState(`console.log('Start');
@@ -21,9 +22,85 @@ console.log('End');`);
   const [speed, setSpeed] = useState(1);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState('code'); // 'code' | 'multi-request'
+  const getInitialMode = () => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (['code', 'multi-request', 'js-execution', 'browser-render'].includes(tab)) {
+      return tab;
+    }
+    return 'browser-render'; // Default
+  };
+
+  const [mode, setMode] = useState(getInitialMode); // 'code' | 'multi-request' | 'js-execution' | 'browser-render'
+
+  // Sync mode with URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') !== mode) {
+      params.set('tab', mode);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [mode]);
   const [numRequests, setNumRequests] = useState(3);
   const intervalRef = useRef(null);
+
+  // Update default code when mode changes
+  useEffect(() => {
+    if (mode === 'browser-render') {
+      setCode(`<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .card { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 8px;
+    }
+    .title { 
+      color: #333; 
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="title">Hello Browser!</h1>
+    <p>This is how rendering works.</p>
+  </div>
+  <script>
+    console.log('DOM is fully parsed!');
+  </script>
+</body>
+</html>`);
+    } else if (mode === 'js-execution') {
+      setCode(`function outer() {
+  let count = 0;
+  return function inner() {
+    count++;
+    console.log('Count is', count);
+  }
+}
+
+const myClosure = outer();
+myClosure();
+myClosure();`);
+    } else {
+      setCode(`console.log('Start');
+
+setTimeout(() => {
+  console.log('Timeout callback');
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log('Promise resolved');
+});
+
+console.log('End');`);
+    }
+    setTimeline([]);
+    setCurrentStep(-1);
+  }, [mode]);
 
   // Current state at this step
   const currentState = currentStep >= 0 && currentStep < timeline.length
@@ -66,6 +143,8 @@ console.log('End');`);
         } else if (mode === 'js-execution') {
           const interpreter = new Interpreter(code);
           newTimeline = interpreter.run();
+        } else if (mode === 'browser-render') {
+          newTimeline = generateBrowserTimeline(code);
         } else {
           newTimeline = generateTimeline(code);
         }

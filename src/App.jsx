@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useVisualizerState } from './hooks/useVisualizerState';
-import { samples, serverSamples, jsExecutionSamples as jsSamples } from './utils/samples';
+import { samples, serverSamples, jsExecutionSamples as jsSamples, browserSamples } from './utils/samples';
 import CodeEditor from './components/CodeEditor/CodeEditor';
 import CallStack from './components/CallStack/CallStack';
 import MicrotaskQueue from './components/TaskQueues/MicrotaskQueue';
 import MacrotaskQueue from './components/TaskQueues/MacrotaskQueue';
 import EventLoop from './components/EventLoop/EventLoop';
 import WebApis from './components/WebApis/WebApis';
+import DomViewer from './components/BrowserRender/DomViewer';
+import CssomViewer from './components/BrowserRender/CssomViewer';
+import RenderPipeline from './components/BrowserRender/RenderPipeline';
+import RenderPreview from './components/BrowserRender/RenderPreview';
 import Console from './components/Console/Console';
 import Controls from './components/Controls/Controls';
 import StepLog from './components/StepLog/StepLog';
@@ -80,6 +84,7 @@ export default function App() {
 
   const activeSamples = v.mode === 'multi-request' ? serverSamples 
                       : v.mode === 'js-execution' ? jsSamples 
+                      : v.mode === 'browser-render' ? browserSamples
                       : samples;
 
   return (
@@ -88,7 +93,7 @@ export default function App() {
       <header className="flex items-center justify-between px-4 py-2 m-2 bg-bg-panel border border-border-subtle rounded-xl shrink-0 z-50">
         <div>
           <h1 className="text-lg font-extrabold tracking-tight text-text-main">
-            {v.mode === 'js-execution' ? 'JS Engine Visualizer' : 'Node.js Engine Visualizer'}
+            {v.mode === 'browser-render' ? 'Browser Render Visualizer' : v.mode === 'js-execution' ? 'JS Engine Visualizer' : 'Node.js Engine Visualizer'}
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -155,71 +160,120 @@ export default function App() {
 
           <HHandle />
 
-          {/* COLUMN 2: Execution Engine */}
-          <Panel defaultSize={33} minSize={20}>
-            <PanelGroup orientation="vertical">
-              <Panel defaultSize={50} minSize={20}>
-                <FocusWrapper id="stack" focusedId={focusedId} setFocusedId={setFocusedId} title="Call Stack">
-                  <CallStack stack={v.currentState.callStack} highlighted={v.currentHighlight} />
-                </FocusWrapper>
-              </Panel>
-
-              <VHandle />
-
-              <Panel defaultSize={40} minSize={20}>
-                <FocusWrapper id="memory" focusedId={focusedId} setFocusedId={setFocusedId} title="Memory / Contexts">
-                  <ExecutionContexts contexts={v.currentState.executionContexts || []} />
-                </FocusWrapper>
-              </Panel>
-              
-              <VHandle />
-              
-              <Panel defaultSize={30} minSize={15}>
-                <FocusWrapper id="webapi" focusedId={focusedId} setFocusedId={setFocusedId} title="Browser Web APIs">
-                  <WebApis apis={v.currentState.webApis} highlighted={v.currentHighlight} />
-                </FocusWrapper>
-              </Panel>
-            </PanelGroup>
-          </Panel>
-
-          <HHandle />
-
-          {/* COLUMN 3: Task Queues & Loop */}
-          <Panel defaultSize={34} minSize={20}>
-            <PanelGroup orientation="vertical">
-              <Panel defaultSize={30} minSize={15}>
-                <PanelGroup orientation="horizontal">
+          {/* DYNAMIC COLUMNS BASED ON MODE */}
+          {v.mode === 'browser-render' ? (
+            <>
+              {/* COLUMN 2: Browser DOM & CSSOM */}
+              <Panel defaultSize={33} minSize={20}>
+                <PanelGroup orientation="vertical">
                   <Panel defaultSize={50} minSize={20}>
-                    <FocusWrapper id="micro" focusedId={focusedId} setFocusedId={setFocusedId} title="Microtask Queue (Promises)">
-                      <MicrotaskQueue queue={v.currentState.microtaskQueue} highlighted={v.currentHighlight} />
+                    <FocusWrapper id="dom" focusedId={focusedId} setFocusedId={setFocusedId} title="DOM Tree">
+                      <DomViewer dom={v.currentState.dom || []} highlighted={v.currentHighlight} />
                     </FocusWrapper>
                   </Panel>
-                  <HHandle />
+                  <VHandle />
                   <Panel defaultSize={50} minSize={20}>
-                    <FocusWrapper id="macro" focusedId={focusedId} setFocusedId={setFocusedId} title="Macrotask Queue (Timers)">
-                      <MacrotaskQueue queue={v.currentState.macrotaskQueue} highlighted={v.currentHighlight} />
+                    <FocusWrapper id="cssom" focusedId={focusedId} setFocusedId={setFocusedId} title="CSSOM Tree">
+                      <CssomViewer cssom={v.currentState.cssom || []} highlighted={v.currentHighlight} />
                     </FocusWrapper>
                   </Panel>
                 </PanelGroup>
               </Panel>
 
-              <VHandle />
+              <HHandle />
 
-              <Panel defaultSize={40} minSize={20}>
-                <FocusWrapper id="loop" focusedId={focusedId} setFocusedId={setFocusedId} title="Browser Event Loop">
-                  <EventLoop highlighted={v.currentHighlight} currentAction={v.currentAction} isPlaying={v.isPlaying} />
-                </FocusWrapper>
+              {/* COLUMN 3: Render Pipeline, Preview & Log */}
+              <Panel defaultSize={34} minSize={20}>
+                <PanelGroup orientation="vertical">
+                  <Panel defaultSize={40} minSize={20}>
+                    <FocusWrapper id="pipeline" focusedId={focusedId} setFocusedId={setFocusedId} title="Pixel Pipeline">
+                      <RenderPipeline phase={v.currentState.pipelinePhase} highlighted={v.currentHighlight} />
+                    </FocusWrapper>
+                  </Panel>
+                  <VHandle />
+                  <Panel defaultSize={40} minSize={20}>
+                    <FocusWrapper id="preview" focusedId={focusedId} setFocusedId={setFocusedId} title="Visual Preview">
+                      <RenderPreview phase={v.currentState.pipelinePhase} htmlContent={v.currentState.htmlContent} />
+                    </FocusWrapper>
+                  </Panel>
+                  <VHandle />
+                  <Panel defaultSize={20} minSize={10}>
+                    <FocusWrapper id="log" focusedId={focusedId} setFocusedId={setFocusedId} title="Rendering Step Log">
+                      <StepLog timeline={v.timeline} currentStep={v.currentStep} />
+                    </FocusWrapper>
+                  </Panel>
+                </PanelGroup>
               </Panel>
-
-              <VHandle />
-
-              <Panel defaultSize={30} minSize={10}>
-                <FocusWrapper id="log" focusedId={focusedId} setFocusedId={setFocusedId} title="Execution Step Log">
-                  <StepLog timeline={v.timeline} currentStep={v.currentStep} />
-                </FocusWrapper>
+            </>
+          ) : (
+            <>
+              {/* COLUMN 2: Execution Engine */}
+              <Panel defaultSize={33} minSize={20}>
+                <PanelGroup orientation="vertical">
+                  <Panel defaultSize={50} minSize={20}>
+                    <FocusWrapper id="stack" focusedId={focusedId} setFocusedId={setFocusedId} title="Call Stack">
+                      <CallStack stack={v.currentState.callStack} highlighted={v.currentHighlight} />
+                    </FocusWrapper>
+                  </Panel>
+    
+                  <VHandle />
+    
+                  <Panel defaultSize={40} minSize={20}>
+                    <FocusWrapper id="memory" focusedId={focusedId} setFocusedId={setFocusedId} title="Memory / Contexts">
+                      <ExecutionContexts contexts={v.currentState.executionContexts || []} />
+                    </FocusWrapper>
+                  </Panel>
+                  
+                  <VHandle />
+                  
+                  <Panel defaultSize={30} minSize={15}>
+                    <FocusWrapper id="webapi" focusedId={focusedId} setFocusedId={setFocusedId} title="Browser Web APIs">
+                      <WebApis apis={v.currentState.webApis} highlighted={v.currentHighlight} />
+                    </FocusWrapper>
+                  </Panel>
+                </PanelGroup>
               </Panel>
-            </PanelGroup>
-          </Panel>
+    
+              <HHandle />
+    
+              {/* COLUMN 3: Task Queues & Loop */}
+              <Panel defaultSize={34} minSize={20}>
+                <PanelGroup orientation="vertical">
+                  <Panel defaultSize={30} minSize={15}>
+                    <PanelGroup orientation="horizontal">
+                      <Panel defaultSize={50} minSize={20}>
+                        <FocusWrapper id="micro" focusedId={focusedId} setFocusedId={setFocusedId} title="Microtask Queue (Promises)">
+                          <MicrotaskQueue queue={v.currentState.microtaskQueue} highlighted={v.currentHighlight} />
+                        </FocusWrapper>
+                      </Panel>
+                      <HHandle />
+                      <Panel defaultSize={50} minSize={20}>
+                        <FocusWrapper id="macro" focusedId={focusedId} setFocusedId={setFocusedId} title="Macrotask Queue (Timers)">
+                          <MacrotaskQueue queue={v.currentState.macrotaskQueue} highlighted={v.currentHighlight} />
+                        </FocusWrapper>
+                      </Panel>
+                    </PanelGroup>
+                  </Panel>
+    
+                  <VHandle />
+    
+                  <Panel defaultSize={40} minSize={20}>
+                    <FocusWrapper id="loop" focusedId={focusedId} setFocusedId={setFocusedId} title="Browser Event Loop">
+                      <EventLoop highlighted={v.currentHighlight} currentAction={v.currentAction} isPlaying={v.isPlaying} />
+                    </FocusWrapper>
+                  </Panel>
+    
+                  <VHandle />
+    
+                  <Panel defaultSize={30} minSize={10}>
+                    <FocusWrapper id="log" focusedId={focusedId} setFocusedId={setFocusedId} title="Execution Step Log">
+                      <StepLog timeline={v.timeline} currentStep={v.currentStep} />
+                    </FocusWrapper>
+                  </Panel>
+                </PanelGroup>
+              </Panel>
+            </>
+          )}
 
         </PanelGroup>
       </div>

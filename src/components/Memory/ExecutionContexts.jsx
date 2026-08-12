@@ -1,4 +1,4 @@
-﻿import { Box, Code, Database, Layers } from 'lucide-react';
+import { Box, Code, Database, Layers } from 'lucide-react';
 
 export default function ExecutionContexts({ contexts , onMaximize }) {
   if (!contexts || contexts.length === 0) {
@@ -51,6 +51,15 @@ export default function ExecutionContexts({ contexts , onMaximize }) {
         <span className="ml-auto text-[12px] px-1.5 py-0.5 rounded bg-bg-secondary border border-border-subtle text-text-muted">
           Active: {contexts.length}
         </span>
+        {onMaximize && (
+          <button 
+            onClick={onMaximize}
+            className="ml-2 p-1 text-text-muted hover:text-text-main hover:bg-bg-secondary rounded "
+            title="Maximize"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+          </button>
+        )}
       </div>
       
       <div className="flex-1 overflow-y-auto p-2 space-y-3 custom-scrollbar">
@@ -127,4 +136,3 @@ export default function ExecutionContexts({ contexts , onMaximize }) {
     </div>
   );
 }
-
