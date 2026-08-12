@@ -1,7 +1,8 @@
 import React from 'react';
 import { Maximize, Monitor } from 'lucide-react';
 
-export default function RenderPreview({ phase, htmlContent = '', onMaximize }) {
+export default function RenderPreview({ phase, htmlContent = '', highlighted, onMaximize }) {
+  const isHighlighted = highlighted === 'preview';
   // Determine visibility states based on phase
   const isStarted = phase && phase !== 'IDLE' && phase !== 'PARSING_HTML' && phase !== 'PARSING_CSS' && phase !== 'STYLE_CALCULATION';
   const hasLayout = phase === 'LAYOUT' || phase === 'PAINT' || phase === 'COMPOSITE' || phase === 'FINISHED';
@@ -30,7 +31,7 @@ export default function RenderPreview({ phase, htmlContent = '', onMaximize }) {
     : htmlContent;
 
   return (
-    <div className="flex flex-col bg-bg-panel border border-border-subtle rounded-lg backdrop-blur-md h-full overflow-hidden">
+    <div className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md overflow-hidden h-full ${isHighlighted ? 'border-neon-green/30 shadow-[0_0_20px_rgba(0,255,136,0.15)]' : 'border-border-subtle'}`}>
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border-subtle bg-bg-tertiary">
         <div className="flex items-center gap-2">
           <Monitor size={14} className="text-text-muted" />

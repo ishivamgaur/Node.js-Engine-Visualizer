@@ -5,7 +5,7 @@ export default function CssomViewer({ cssom, highlighted, onMaximize }) {
   const isHighlighted = highlighted === 'cssom';
   
   return (
-    <div className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md h-full ${isHighlighted ? 'border-neon-purple/50 shadow-[0_0_15px_rgba(180,0,255,0.15)]' : 'border-border-subtle'}`}>
+    <div className={`flex flex-col bg-bg-panel border rounded-lg backdrop-blur-md overflow-hidden h-full ${isHighlighted ? 'border-neon-purple/30 shadow-[0_0_20px_rgba(180,0,255,0.15)]' : 'border-border-subtle'}`}>
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border-subtle bg-bg-tertiary">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${isHighlighted ? 'bg-neon-purple' : 'bg-text-muted'}`} />

@@ -194,7 +194,7 @@ export default function App() {
                   <VHandle />
                   <Panel defaultSize={40} minSize={20}>
                     <FocusWrapper id="preview" focusedId={focusedId} setFocusedId={setFocusedId} title="Visual Preview">
-                      <RenderPreview phase={v.currentState.pipelinePhase} htmlContent={v.currentState.htmlContent} />
+                      <RenderPreview phase={v.currentState.pipelinePhase} htmlContent={v.currentState.htmlContent} highlighted={v.currentHighlight} />
                     </FocusWrapper>
                   </Panel>
                   <VHandle />
@@ -234,7 +234,7 @@ export default function App() {
                       </FocusWrapper>
                     ) : (
                       <FocusWrapper id="libuv" focusedId={focusedId} setFocusedId={setFocusedId} title="Libuv Thread Pool & OS">
-                        <Libuv ops={v.currentState.libuv} highlighted={v.currentHighlight} />
+                        <Libuv ops={v.currentState.libuvOps || []} highlighted={v.currentHighlight} />
                       </FocusWrapper>
                     )}
                   </Panel>
