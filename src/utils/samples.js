@@ -1,4 +1,4 @@
-﻿export const samples = [
+export const samples = [
   {
     title: "Sync + Async Basics",
     description: "Shows the order of sync code, promises, and timers",
@@ -209,6 +209,65 @@ myClosure();`
 }
 
 setupHandlers();`
+  }
+];
+
+export const browserSamples = [
+  {
+    title: "Basic HTML & CSS",
+    description: "A simple card component to visualize basic parsing and painting.",
+    code: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .card { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 8px;
+    }
+    .title { 
+      color: #333; 
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="title">Hello Browser!</h1>
+    <p>This is how rendering works.</p>
+  </div>
+  <script>
+    console.log('DOM is fully parsed!');
+  </script>
+</body>
+</html>`
+  },
+  {
+    title: "Interactive JS UI",
+    description: "A button that changes background color when clicked.",
+    code: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .button { 
+      background: #007bff; 
+      color: white; 
+      padding: 10px 20px;
+    }
+    .active {
+      background: #28a745;
+    }
+  </style>
+</head>
+<body>
+  <button class="button">Click Me</button>
+  <script>
+    document.querySelector('.button').addEventListener('click', () => {
+      console.log('Button clicked!');
+    });
+  </script>
+</body>
+</html>`
   }
 ];
 
