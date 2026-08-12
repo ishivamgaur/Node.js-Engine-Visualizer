@@ -279,6 +279,21 @@ class Interpreter {
         return undefined;
       }
 
+      case 'UpdateExpression': {
+        if (node.argument.type === 'Identifier') {
+          const name = node.argument.name;
+          let val = this.currentEnv.lookup(name);
+          if (typeof val !== 'number') val = 0;
+          const isPostfix = !node.prefix;
+          const oldVal = val;
+          const newVal = node.operator === '++' ? val + 1 : val - 1;
+          this.currentEnv.assign(name, newVal);
+          this.addStep('VARIABLE_ASSIGN', `${name} = ${newVal}`, 'memory', 'execution', node.loc.start.line);
+          return isPostfix ? oldVal : newVal;
+        }
+        return undefined;
+      }
+
       case 'Literal':
         return node.value;
 
@@ -438,9 +453,7 @@ class Interpreter {
     } catch(e) { /* might be a built-in not mocked */ }
 
     if (fnObj && fnObj.__isFunction) {
-      this.executeFunction(fnObj, args, callLabel, line);
-      // For now, assume it returns undefined (we can add a 'return' interceptor later if fully needed)
-      return undefined;
+      return this.executeFunction(fnObj, args, callLabel, line);
     } else {
        // Mock unrecognised functions
        this.callStack.push({ name: callLabel, type: 'function', line });

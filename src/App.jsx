@@ -7,7 +7,6 @@ import MicrotaskQueue from './components/TaskQueues/MicrotaskQueue';
 import MacrotaskQueue from './components/TaskQueues/MacrotaskQueue';
 import EventLoop from './components/EventLoop/EventLoop';
 import WebApis from './components/WebApis/WebApis';
-import Libuv from './components/Libuv/Libuv';
 import Console from './components/Console/Console';
 import Controls from './components/Controls/Controls';
 import StepLog from './components/StepLog/StepLog';
@@ -167,36 +166,18 @@ export default function App() {
 
               <VHandle />
 
-              <Panel defaultSize={50} minSize={20}>
-                {v.mode === 'js-execution' ? (
-                  <FocusWrapper id="memory" focusedId={focusedId} setFocusedId={setFocusedId} title="Memory / Contexts">
-                    <ExecutionContexts contexts={v.currentState.executionContexts || []} />
-                  </FocusWrapper>
-                ) : (
-                  <PanelGroup orientation="vertical">
-                    <Panel defaultSize={40} minSize={20}>
-                      <FocusWrapper id="memory" focusedId={focusedId} setFocusedId={setFocusedId} title="Memory / Contexts">
-                        <ExecutionContexts contexts={v.currentState.executionContexts || []} />
-                      </FocusWrapper>
-                    </Panel>
-                    <VHandle />
-                    <Panel defaultSize={60} minSize={20}>
-                      <PanelGroup orientation="horizontal">
-                        <Panel defaultSize={50} minSize={20}>
-                          <FocusWrapper id="webapi" focusedId={focusedId} setFocusedId={setFocusedId} title="Web/Node APIs">
-                            <WebApis apis={v.currentState.webApis} highlighted={v.currentHighlight} />
-                          </FocusWrapper>
-                        </Panel>
-                        <HHandle />
-                        <Panel defaultSize={50} minSize={20}>
-                          <FocusWrapper id="libuv" focusedId={focusedId} setFocusedId={setFocusedId} title="Libuv Thread Pool">
-                            <Libuv ops={v.currentState.libuvOps} highlighted={v.currentHighlight} />
-                          </FocusWrapper>
-                        </Panel>
-                      </PanelGroup>
-                    </Panel>
-                  </PanelGroup>
-                )}
+              <Panel defaultSize={40} minSize={20}>
+                <FocusWrapper id="memory" focusedId={focusedId} setFocusedId={setFocusedId} title="Memory / Contexts">
+                  <ExecutionContexts contexts={v.currentState.executionContexts || []} />
+                </FocusWrapper>
+              </Panel>
+              
+              <VHandle />
+              
+              <Panel defaultSize={30} minSize={15}>
+                <FocusWrapper id="webapi" focusedId={focusedId} setFocusedId={setFocusedId} title="Browser Web APIs">
+                  <WebApis apis={v.currentState.webApis} highlighted={v.currentHighlight} />
+                </FocusWrapper>
               </Panel>
             </PanelGroup>
           </Panel>
@@ -209,15 +190,13 @@ export default function App() {
               <Panel defaultSize={30} minSize={15}>
                 <PanelGroup orientation="horizontal">
                   <Panel defaultSize={50} minSize={20}>
-                    <FocusWrapper id="micro" focusedId={focusedId} setFocusedId={setFocusedId} title="Microtask Queue">
+                    <FocusWrapper id="micro" focusedId={focusedId} setFocusedId={setFocusedId} title="Microtask Queue (Promises)">
                       <MicrotaskQueue queue={v.currentState.microtaskQueue} highlighted={v.currentHighlight} />
                     </FocusWrapper>
                   </Panel>
-                  
                   <HHandle />
-                  
                   <Panel defaultSize={50} minSize={20}>
-                    <FocusWrapper id="macro" focusedId={focusedId} setFocusedId={setFocusedId} title="Macrotask Queue">
+                    <FocusWrapper id="macro" focusedId={focusedId} setFocusedId={setFocusedId} title="Macrotask Queue (Timers)">
                       <MacrotaskQueue queue={v.currentState.macrotaskQueue} highlighted={v.currentHighlight} />
                     </FocusWrapper>
                   </Panel>
@@ -227,14 +206,14 @@ export default function App() {
               <VHandle />
 
               <Panel defaultSize={40} minSize={20}>
-                <FocusWrapper id="loop" focusedId={focusedId} setFocusedId={setFocusedId} title="Event Loop Tracker">
+                <FocusWrapper id="loop" focusedId={focusedId} setFocusedId={setFocusedId} title="Browser Event Loop">
                   <EventLoop highlighted={v.currentHighlight} currentAction={v.currentAction} isPlaying={v.isPlaying} />
                 </FocusWrapper>
               </Panel>
 
               <VHandle />
 
-              <Panel defaultSize={20} minSize={10}>
+              <Panel defaultSize={30} minSize={10}>
                 <FocusWrapper id="log" focusedId={focusedId} setFocusedId={setFocusedId} title="Execution Step Log">
                   <StepLog timeline={v.timeline} currentStep={v.currentStep} />
                 </FocusWrapper>
